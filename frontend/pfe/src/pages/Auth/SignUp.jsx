@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { validateEmail } from '../../utils/helper';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
-import { UserContext } from '../../context/userContext';
+import { UserContext } from '../../context/UserContext';
 import uploadImage from '../../utils/uploadImage';
 
 const SignUp = () => {

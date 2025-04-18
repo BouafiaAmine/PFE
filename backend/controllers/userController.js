@@ -31,6 +31,15 @@ const getUsers = async (req, res) => {
     }
 };
 
+//get all users for chat 
+const getUsersController = async (req, res) => {
+    try {
+      const users = await getUsers(); // admin only route
+      res.json(users);
+    } catch (err) {
+      res.status(500).json({ message: "Error fetching users", err });
+    }
+  };
 
 //@desc Get user y ID
 //@route GET /api/users/:id
@@ -48,4 +57,4 @@ const getUserById = async (req, res) => {
 
 
 
-module.exports = { getUsers, getUserById };
+module.exports = { getUsers, getUsersController, getUserById };

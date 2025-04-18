@@ -1,14 +1,22 @@
 const express = require("express");
 const { adminOnly, protect } = require("../middlewares/authMiddleware");
-const { getUserById, getUsers } = require("../controllers/userController");
-
+const { getUserById, getUsers, getUsersController } = require("../controllers/userController");
 
 const router = express.Router();
 
-// User Management Routes
+router.get("/", protect, adminOnly, getUsers);
+router.get("/all", protect, async (req, res) => {
+  try {
+    const users = await require("../models/User").find({
+      _id: { $ne: req.user._id } // exclude current user
+    }).select("-password"); // exclude password if you store it
 
-router.get("/", protect, adminOnly, getUsers); //get all users (admin only)
-router.get("/:id", protect, getUserById); //get a specific user
-
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching users", err });
+  }
+});
+router.get("/:id", protect, getUserById);
 
 module.exports = router;

@@ -1,10 +1,12 @@
 import React, { useContext } from 'react';
-import { BrowserRouter as Router,
+import {
+  BrowserRouter as Router,
   Routes,
-   Route,
-   Outlet,
-   Navigate,
-   } from 'react-router-dom';
+  Route,
+  Outlet,
+  Navigate,
+} from 'react-router-dom';
+
 import Login from './pages/Auth/Login';
 import SignUp from './pages/Auth/SignUp';
 import Dashboard from './pages/Admin/Dashboard';
@@ -15,48 +17,71 @@ import ViewTaskDetails from "./pages/User/ViewTaskDetails";
 import CreateTask from './pages/Admin/CreateTask';
 import ManageUsers from './pages/Admin/ManageUsers';
 import PrivateRoute from './route/PrivateRoute';
-import UserProvider, { UserContext } from './context/userContext';
+import ProtectedRoute from './utils/ProtectedRoute';
+import UserProvider, { UserContext } from './context/UserContext';
 import { Toaster } from 'react-hot-toast';
-
+import Chat from './pages/Chat/Chat';
+import { OnlineStatusProvider } from "./context/OnlineStatusContext";
+import { SocketProvider } from "./context/socket"; // ✅ Add this
 
 const App = () => {
   return (
     <UserProvider>
-    <div >
-      <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signUp" element={<SignUp />} />
-        
-        { /* Admin Routes */}
-        <Route element={<PrivateRoute allowedRoles={["admin"]} />} >
-         <Route path="/admin/dashboard" element={<Dashboard />} />
-         <Route path="/admin/tasks" element={<ManageTasks />} />
-         <Route path="/admin/create-task" element={<CreateTask />} />
-         <Route path="/admin/users" element={<ManageUsers />} />
-       </Route> 
+      <SocketProvider> {/* ✅ Provide socket context */}
+        <OnlineStatusProvider> {/* ✅ Provide online users context */}
+          <div>
+            <Router>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signUp" element={<SignUp />} />
 
-       { /* User Routes */}
-        <Route element={<PrivateRoute allowedRoles={["admin"]} />} >
-         <Route path="/user/dashboard" element={<UserDashboard />} />
-         <Route path="/user/tasks" element={<MyTasks />} />
-         <Route path="/user/task-details/:id" element={<ViewTaskDetails />} />
-       </Route> 
-       {/* Default Route */}
-       <Route path="/" element={<Root />} />
+                {/* Admin Routes */}
+                <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+                  <Route path="/admin/dashboard" element={<Dashboard />} />
+                  <Route path="/admin/tasks" element={<ManageTasks />} />
+                  <Route path="/admin/create-task" element={<CreateTask />} />
+                  <Route path="/admin/users" element={<ManageUsers />} />
+                  <Route
+                    path="/admin/chat"
+                    element={
+                      <ProtectedRoute>
+                        <Chat />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
 
-      </Routes>
-    </Router>
-    </div>
-    
-    <Toaster
-       toastOptions={{
-         className: "",
-         style: {
-           fontSize: "13px",
-         },
-      }}   
-    /> 
+                {/* User Routes */}
+                <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+                  <Route path="/user/dashboard" element={<UserDashboard />} />
+                  <Route path="/user/tasks" element={<MyTasks />} />
+                  <Route path="/user/task-details/:id" element={<ViewTaskDetails />} />
+                  <Route
+                    path="/user/chat"
+                    element={
+                      <ProtectedRoute>
+                        <Chat />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
+
+                {/* Default Route */}
+                <Route path="/" element={<Root />} />
+              </Routes>
+            </Router>
+          </div>
+
+          <Toaster
+            toastOptions={{
+              className: "",
+              style: {
+                fontSize: "13px",
+              },
+            }}
+          />
+        </OnlineStatusProvider>
+      </SocketProvider>
     </UserProvider>
   );
 };
@@ -64,14 +89,13 @@ const App = () => {
 export default App;
 
 const Root = () => {
-  const { user, loading } = useContext(UserContext); 
+  const { user, loading } = useContext(UserContext);
 
-  if (loading) return <Outlet />
+  if (loading) return <Outlet />;
 
-  if(!user) {
+  if (!user) {
     return <Navigate to="/login" />;
   }
 
-  return user.role ==="admin" ? <Navigate to="/admin/dashboard" /> : <Navigate to="/user/dashboard" />;
+  return user.role === "admin" ? <Navigate to="/admin/dashboard" /> : <Navigate to="/user/dashboard" />;
 };
-
